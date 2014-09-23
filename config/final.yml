@@ -1,0 +1,8 @@
+---
+final_name: ipsec
+min_cli_version: 0.1
+blobstore:
+  provider: s3
+  options:
+    bucket_name: bosh-ipsec
+

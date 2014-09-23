@@ -1,0 +1,115 @@
+#! /bin/bash
+
+# James Masson <http://www.jmips.co.uk/contact>
+
+###
+# Variables for BOSH
+###
+PKG_DIR=/var/vcap/packages/ipsec
+JOB_DIR=/var/vcap/jobs/ipsec
+PID_DIR=/var/vcap/sys/run/ipsec
+LOG_DIR=/var/vcap/sys/log/ipsec
+CFG_FILE=${JOB_DIR}/etc/racoon.conf
+SETKEY_CONF=${JOB_DIR}/etc/setkey.conf
+RACOON=${PKG_DIR}/sbin/racoon
+SETKEY=${PKG_DIR}/sbin/setkey
+PID_FILE="${PID_DIR}/racoon.pid"
+PROC_FILE="/proc/net/pfkey"
+RACOON_ARGS="-l ${LOG_DIR}/racoon.log -f ${CFG_FILE} "
+
+# Create all the directories we'll need
+if [ ! -d ${LOG_DIR} ]; then
+        mkdir -p ${LOG_DIR}
+fi
+
+if [ ! -d ${PID_DIR} ]; then
+	mkdir -p ${PID_DIR}
+fi
+
+
+## change perms on PSK file
+chmod 600 ${JOB_DIR}/etc/psk.txt
+
+start () {
+  ${SETKEY} -f ${SETKEY_CONF} || return 11
+
+<% if_p("ipsec.mss_clamp") do |_| %>
+<% if p("ipsec.disabled") == false %>
+  start_mss_clamp || return 12
+<% end %>
+<% end %>
+
+	${RACOON} ${RACOON_ARGS} || return 13
+  echo $! > ${PID_FILE}
+   
+}
+
+stop () {
+
+<% if_p("ipsec.mss_clamp") do |_| %>
+<% if p("ipsec.disabled") == false %>
+  stop_mss_clamp
+<% end %>
+<% end %>
+
+  pkill -F ${PID_FILE} || return 22
+  ${SETKEY} -FP || return 23
+  
+
+}
+
+<% if_p("ipsec.mss_clamp") do |_| %>
+<% if p("ipsec.disabled") == false %>
+## Manage MSS clamping 
+start_mss_clamp () {
+  iptables -t mangle -A FORWARD \
+    -d 10.254.0.0/22 \
+    -p tcp -m tcp --tcp-flags SYN,RST SYN \
+    -m tcpmss --mss <%= p("ipsec.mss_clamp").to_i + 1 %>:1536 \
+    -j TCPMSS --set-mss <%= p("ipsec.mss_clamp") %> \
+    -m comment --comment "IPSEC MSS clamp " || return 1
+}
+
+stop_mss_clamp () {
+  iptables -t mangle -D FORWARD \
+    -d 10.254.0.0/22 \
+    -p tcp -m tcp --tcp-flags SYN,RST SYN \
+    -m tcpmss --mss <%= p("ipsec.mss_clamp").to_i + 1 %>:1536 \
+    -j TCPMSS --set-mss <%= p("ipsec.mss_clamp") %> \
+    -m comment --comment "IPSEC MSS clamp "  || return 1
+}
+<% end %>
+<% end %>
+
+case "$1" in
+start)
+	start
+	case "$?" in
+		0) echo "`date` - Started IPSEC successfully" ;;
+		11) echo "`date` - Failed to start setkey"  ;;
+		12) echo "`date` - Failed to start MSS clamp"  ;;
+		13) echo "`date` - Failed to start racoon"  ;;
+		1|*) echo "`date` - Failed to start IPSEC"  ;;
+	esac
+  ;;
+       
+stop)	
+	stop
+	case "$?" in
+		0) echo "`date` - Stopped IPSEC successfully" ;;
+		22) echo "`date` - Failed to stop racoon" ;;
+		23) echo "`date` - Failed to stop setkey" ;;
+		1|*) echo "`date` - Failed to stop IPSEC"  ;;
+	esac
+  ;;
+          
+*)
+  "Usage: $0 {start|stop}" >&2
+  exit 1
+  ;;
+
+esac
+
+
+exit 0
+

@@ -1,0 +1,39 @@
+log info;
+path pre_shared_key "/var/vcap/jobs/ipsec/etc/psk.txt";
+path certificate "/var/vcap/jobs/ipsec/etc/certs";
+path pidfile "/var/vcap/sys/run/ipsec/racoon.pid";
+
+###
+#  Default transport settings
+###
+remote 0.0.0.0 {
+  exchange_mode main;
+  dpd_delay 10;
+    proposal {
+      encryption_algorithm <%= p("ipsec.crypto") %>;
+      hash_algorithm <%= p("ipsec.crypto_hash") %>;
+      authentication_method pre_shared_key;
+      dh_group <%= p("ipsec.dh_group") %>;
+      lifetime time <%= p("ipsec.outer_lifetime") %>;
+    }
+}
+
+###
+# Individual tunnels
+###
+<% p("ipsec.nodes").each do |node| %>
+<%  next if node == spec.networks.send(properties.networks.apps).ip %>
+remote <%= node %> inherit 0.0.0.0 {}
+<% end %>
+
+###
+# Default SA
+###
+sainfo anonymous {
+  encryption_algorithm <%= p("ipsec.crypto") %>;
+  authentication_algorithm <%= p("ipsec.crypto_auth_hash") %>;
+  lifetime time <%= p("ipsec.inner_lifetime") %>;
+  pfs_group <%= p("ipsec.pfs_group") %>;
+  compression_algorithm deflate;
+}
+

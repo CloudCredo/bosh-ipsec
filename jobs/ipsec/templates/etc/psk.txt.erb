@@ -1,0 +1,4 @@
+<% p("ipsec.nodes").each do |node| %>
+<%  next if node == spec.networks.send(properties.networks.apps).ip %>
+<%= node %> <%= p("ipsec.psk") %>
+<% end %>

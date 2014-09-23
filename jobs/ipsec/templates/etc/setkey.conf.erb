@@ -1,0 +1,18 @@
+# Flush the SPD and the SAD
+spdflush;
+flush;
+
+# Security policies
+<% if p("ipsec.disabled") == false and p("ipsec.nodes").include?(spec.networks.send(properties.networks.apps).ip) %>
+<% p("ipsec.nodes").each do |node| %>
+<%  next if node == spec.networks.send(properties.networks.apps).ip %>
+spdadd <%= spec.networks.send(properties.networks.apps).ip %>/32 <%= node %>/32 any
+       -P out ipsec
+       esp/transport//require;
+
+spdadd <%= node %>/32 <%= spec.networks.send(properties.networks.apps).ip %>/32 any
+       -P in ipsec
+       esp/transport//require;
+<% end %>
+<% end %>
+

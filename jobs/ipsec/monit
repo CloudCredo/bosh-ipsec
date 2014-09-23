@@ -1,0 +1,6 @@
+check process ipsec
+  with pidfile /var/vcap/sys/run/ipsec/racoon.pid
+  start program "/var/vcap/jobs/ipsec/bin/racoon start"
+  stop program "/var/vcap/jobs/ipsec/bin/racoon stop"
+  group vcap
+

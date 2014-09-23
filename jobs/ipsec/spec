@@ -1,0 +1,54 @@
+---
+name: ipsec
+templates:
+  bin/racoon.erb: bin/racoon
+  etc/psk.txt.erb: etc/psk.txt
+  etc/setkey.conf.erb: etc/setkey.conf
+  etc/racoon.conf.erb: etc/racoon.conf
+
+packages:
+- ipsec
+
+properties:
+  ipsec.nodes:
+    description: Array of IP addresses participating in IPSEC transport mode
+    default: []
+  ipsec.disabled:
+    description: Disable ipsec globally - for testing
+    default: false
+
+  ipsec.crypto:
+    description: Crypto standard
+    default: 'aes'
+  ipsec.crypto_hash:
+    description: Crypto hash standard
+    default: 'sha256'
+  ipsec.crypto_auth_hash:
+    description: Crypto auth hash standard
+    default: 'hmac_sha256'
+  ipsec.dh_group:
+    description: Diffie-Hellman group
+    default: '2'
+  ipsec.pfs_group:
+    description: Perfect-Forward-Secrecy group
+    default: '2'
+  ipsec.inner_lifetime:
+    description: Inner tunnel key lifetime
+    default: '1 hour'
+  ipsec.outer_lifetime:
+    description: Outer tunnel key lifetime
+    default: '2 hours'
+  ipsec.psk:
+    description: Initial PSK used to protect crypto key generation
+    default: 'insecure_key'
+
+  # You should not have to use this in normal operation
+  # It's only for situations where large IP packets are silently dropped due to encapsulation overheads
+  # Specify this as a property on all DEAs, until the warden container handles PMTUD and setting MTU properly
+  # Setting this to a value of the local network MTU-90 should be safe
+  ipsec.mss_clamp:
+    description: MSS clamp for misbehaving networks
+
+  networks.apps:
+    description: "Used to get our IP address"
+

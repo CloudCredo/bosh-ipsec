@@ -1,0 +1,36 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+.AppleDouble/*
+.AppleDouble
+*~
+*.swp
+tmp
+
+
+# Bosh Release Files
+###########################
+config/dev.yml
+config/private.yml
+releases/*.tgz
+dev_releases
+blobs/*
+.blobs
+.dev_builds
+.vagrant
+.idea
+.final_builds/jobs/**/*.tgz
+.final_builds/packages/**/*.tgz
+
+releases/**/*.tgz
+blobs
+*#
+#*
+
