@@ -1,0 +1,98 @@
+name: ipsec-lite
+director_uuid: 9dd8ea1e-36ec-4f00-aa91-05ec4e7d496f
+
+release:
+  name: ipsec
+  version: latest
+
+compilation:
+  workers: 1
+  reuse_compilation_vms: true
+  network: lite1
+  cloud_properties:
+    name: random
+
+update:
+  canaries: 1
+  canary_watch_time: 3000-90000
+  update_watch_time: 3000-90000
+  max_in_flight: 1
+  max_errors: 1
+
+networks:
+- name: lite1
+  subnets:
+  - range: 10.244.10.0/30
+    reserved:
+      - 10.244.10.1
+    static:
+      - 10.244.10.2
+    cloud_properties:
+      name: random
+  - range: 10.244.10.4/30
+    reserved:
+      - 10.244.10.5
+    static:
+      - 10.244.10.6
+    cloud_properties:
+      name: random
+  - range: 10.244.10.8/30
+    reserved:
+      - 10.244.10.9
+    static:
+      - 10.244.10.10
+    cloud_properties:
+      name: random
+  - range: 10.244.10.80/30
+    reserved:
+      - 10.244.10.81
+    cloud_properties:
+      name: random
+  - range: 10.244.10.84/30
+    reserved:
+      - 10.244.10.85
+    cloud_properties:
+      name: random
+  - range: 10.244.10.88/30
+    reserved:
+      - 10.244.10.89
+    cloud_properties:
+      name: random
+
+resource_pools:
+- name: infrastructure
+  network: lite1
+  size: 3
+  stemcell:
+    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
+    version: latest
+  cloud_properties:
+    name: random
+
+jobs:
+- name: ipsec
+  template: ipsec
+  instances: 3
+  resource_pool: infrastructure
+  persistent_disk: 3000
+  networks:
+  - name: lite1
+    default:
+    - dns
+    - gateway
+    static_ips:
+     - 10.244.10.2
+     - 10.244.10.6
+     - 10.244.10.10
+
+properties:
+  ipsec:
+    nodes:
+      - 10.244.10.2
+      - 10.244.10.6
+      - 10.244.10.10
+
+    disabled: false
+
+  networks:
+    apps: lite1
