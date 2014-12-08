@@ -59,11 +59,13 @@ MSS-clamping can be used to partially resolve this issue, if the real cause of t
 
 see ```jobs/ipsec/spec```
 
+
+
 ## BOSH-Lite
 
-Please use BOSH-Lite box v237 - git checkout b09fb8c4e923628c6cbb25b6a50f0fc8367da864
+Newer 'packer' derived versions have network oddities that prevent IPSEC transport mode by default.
 
-Newer 'packer' derived versions have network oddities that prevent IPSEC transport mode.
+Follow the workaround in https://github.com/cloudfoundry/bosh-lite/issues/193
 
 ## CloudFoundry
 
