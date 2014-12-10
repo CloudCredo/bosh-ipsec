@@ -46,18 +46,27 @@ properties:
 Further reading: ```jobs/ipsec/spec```
 
 
-## MTU and MSS-clamping
+## IPSEC & MTU
 
 IPSEC encapsulation has some IP packet overhead, which means the effective MTU on the network is less
 than set on the interface. In some situations, this can cause large packets to be 
 silently dropped on misconfigured networks.
 
-This can be the case in situations where Path-MTU-Discovery is not working properly, or MTU is set wrongly.
-Blocking ICMP on routers can cause this problem.
+This is the case on the Warden containers on Cloud Foundry Runners.
 
-MSS-clamping can be used to partially resolve this issue, if the real cause of the problem is not under your control.
+To fix this on Cloud Foundry v192 or newer, set:
+
+```
+properties:
+  dea_next:
+    mtu: 1400
+```
+
+MSS-clamping can also be used to partially resolve this issue, if the real cause of the problem is not under your control.
 
 see ```jobs/ipsec/spec```
+
+also see https://github.com/cloudfoundry/warden/pull/79
 
 
 
@@ -69,7 +78,7 @@ Follow the workaround in https://github.com/cloudfoundry/bosh-lite/issues/193
 
 ## CloudFoundry
 
-Tested on CF-180 with provided example manifest.
+Tested on CF-194 with provided example manifest.
 
 ## Manifests
 
